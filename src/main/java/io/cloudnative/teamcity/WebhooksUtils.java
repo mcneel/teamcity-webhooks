@@ -102,4 +102,9 @@ final class WebhooksUtils {
       LOG.error("WebHooks plugin - " + message, error);
     }
   }
+
+
+  static void debug(@NonNull String message){
+      LOG.debug("WebHooks plugin - " + message);
+  }
 }

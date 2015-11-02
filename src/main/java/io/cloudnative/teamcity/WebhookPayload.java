@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.experimental.FieldDefaults;
 import java.util.Map;
+import java.util.List;
+import java.util.Date;
 
 
 /**
@@ -23,6 +25,8 @@ public class WebhookPayload {
     String full_url;
     String build_id;
     String status;
+    Date started_at;
+    Date finished_at;
     Scm    scm;
     Map<String,Map<String,String>> artifacts;
   }
@@ -32,5 +36,6 @@ public class WebhookPayload {
     String url;
     String branch;
     String commit;
+    List<String> changes;
   }
 }
