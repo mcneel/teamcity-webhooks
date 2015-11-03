@@ -6,10 +6,10 @@ import static io.cloudnative.teamcity.WebhooksUtils.*;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.google.gson.Gson;
+import com.google.gson.*;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.artifacts.ArtifactsGuard;
-import jetbrains.buildServer.vcs.VcsException;
+import jetbrains.buildServer.vcs.*;
 import jodd.http.HttpRequest;
 import jodd.http.net.SocketHttpConnection;
 import lombok.*;
@@ -17,6 +17,7 @@ import lombok.experimental.ExtensionMethod;
 import lombok.experimental.FieldDefaults;
 import java.io.File;
 import java.util.*;
+import java.text.DateFormat;
 
 
 @ExtensionMethod(LombokExtensions.class)
@@ -29,6 +30,8 @@ public class WebhooksListener extends BuildServerAdapter {
   @NonNull ServerPaths      serverPaths;
   @NonNull ArtifactsGuard   artifactsGuard;
 
+  String DateFormat = "EEE', 'dd' 'MMM' 'yyyy' 'HH:mm:ss' 'Z";
+  Gson gson = new GsonBuilder().setPrettyPrinting().setDateFormat(DateFormat).serializeNulls().create();
 
   public void register(){
     buildServer.addListener(this);
@@ -39,10 +42,33 @@ public class WebhooksListener extends BuildServerAdapter {
   public void buildFinished(@NonNull SRunningBuild build) {
     val time = System.currentTimeMillis();
     try {
-      val gson    = new Gson();
-      val payload = gson.toJson(buildPayload(build));
+      Date started_at = build.getStartDate();
+      Date finished_at = build.getFinishDate();
+      if (finished_at == null) {
+        finished_at = new Date();
+      }
+      String status = build.getStatusDescriptor().getStatus().getText().toLowerCase();
+      if (build.isInterrupted()) {
+        status = "error";
+      }
+
+      val payload = gson.toJson(buildPayload(build, status, started_at, finished_at));
       gson.fromJson(payload, Map.class); // Sanity check of JSON generated
       log("Build '%s/#%s' finished, payload is '%s'".f(build.getFullName(), build.getBuildNumber(), payload));
+
+      /////////////////////////////////////////////////
+      // log("state: " + build.getBuildStatus().toString().toLowerCase());
+      // log("duration: " + String.valueOf(build.getDuration()) + "s");
+      //
+      // log("Revisions:");
+      // for (val rev : build.getRevisions()) {
+      //   log(rev.getRevision());
+      // }
+      // log("Containing changes:");
+      // for (VcsModification rev : build.getChanges(SelectPrevBuildPolicy.SINCE_LAST_SUCCESSFULLY_FINISHED_BUILD, false)) {
+      //   log(rev.getVersion());
+      // }
+      /////////////////////////////////////////////////
 
       for (val url : settings.getUrls(build.getProjectExternalId())){
         postPayload(url, payload);
@@ -56,17 +82,144 @@ public class WebhooksListener extends BuildServerAdapter {
   }
 
 
+  @Override
+  public void buildStarted(@NonNull SRunningBuild build) {
+    val time = System.currentTimeMillis();
+    try {
+      Date started_at = build.getStartDate();
+      String status = "pending";
+
+      val payload = gson.toJson(buildPayload(build, status, started_at, null));
+      gson.fromJson(payload, Map.class); // Sanity check of JSON generated
+      log("Build '%s/#%s' started, payload is '%s'".f(build.getFullName(), build.getBuildNumber(), payload));
+
+      /////////////////////////////////////////////////
+      // log("state: started");
+      // log("Revision:");
+      // String head = "";
+      // val revisions = build.getRevisions();
+      // if (revisions.isEmpty() == false) {
+      //   head = revisions.get(0).getRevision();
+      // }
+      // else {
+      //   // if above fails, fall back to getting version from vcs root
+      //   val vcsRoots = build.getBuildType().getVcsRootInstanceEntries();
+      //   if (! vcsRoots.isEmpty()) {
+      //     val vcsRoot = vcsRoots.get(0).getVcsRoot();
+      //     head = vcsRoot.getCurrentRevision().getVersion();
+      //   }
+      // }
+      // log(head);
+      // log("Containing changes:");
+      // for (VcsModification rev : build.getChanges(SelectPrevBuildPolicy.SINCE_LAST_SUCCESSFULLY_FINISHED_BUILD, false)) {
+      //   log(rev.getVersion());
+      // }
+      /////////////////////////////////////////////////
+
+      for (val url : settings.getUrls(build.getProjectExternalId())){
+        postPayload(url, payload);
+      }
+
+      log("Operation finished in %s ms".f(System.currentTimeMillis() - time));
+    }
+    catch (Throwable t) {
+      error("Failed to listen on buildStarted() of '%s' #%s".f(build.getFullName(), build.getBuildNumber()), t);
+    }
+  }
+
+
+  @Override
+  public void buildInterrupted(@NonNull SRunningBuild build) {
+    val time = System.currentTimeMillis();
+    try {
+      Date started_at = build.getStartDate();
+      Date finished_at = build.getFinishDate();
+      if (finished_at == null) {
+        finished_at = new Date();
+      }
+      String status = "error";
+
+      val payload = gson.toJson(buildPayload(build, status, started_at, finished_at));
+      gson.fromJson(payload, Map.class); // Sanity check of JSON generated
+      log("Build '%s/#%s' interrupted, payload is '%s'".f(build.getFullName(), build.getBuildNumber(), payload));
+
+      /////////////////////////////////////////////////
+      // log("state: started");
+      // log("Revision:");
+      // String head = "";
+      // val revisions = build.getRevisions();
+      // if (revisions.isEmpty() == false) {
+      //   head = revisions.get(0).getRevision();
+      // }
+      // else {
+      //   // if above fails, fall back to getting version from vcs root
+      //   val vcsRoots = build.getBuildType().getVcsRootInstanceEntries();
+      //   if (! vcsRoots.isEmpty()) {
+      //     val vcsRoot = vcsRoots.get(0).getVcsRoot();
+      //     head = vcsRoot.getCurrentRevision().getVersion();
+      //   }
+      // }
+      // log(head);
+      // log("Containing changes:");
+      // for (VcsModification rev : build.getChanges(SelectPrevBuildPolicy.SINCE_LAST_SUCCESSFULLY_FINISHED_BUILD, false)) {
+      //   log(rev.getVersion());
+      // }
+      /////////////////////////////////////////////////
+
+      for (val url : settings.getUrls(build.getProjectExternalId())){
+        postPayload(url, payload);
+      }
+
+      log("Operation finished in %s ms".f(System.currentTimeMillis() - time));
+    }
+    catch (Throwable t) {
+      error("Failed to listen on buildInterrupted() of '%s' #%s".f(build.getFullName(), build.getBuildNumber()), t);
+    }
+  }
+
+
   @SuppressWarnings({"FeatureEnvy" , "ConstantConditions"})
   @SneakyThrows(VcsException.class)
-  private WebhookPayload buildPayload(@NonNull SBuild build){
+  private WebhookPayload buildPayload(@NonNull SBuild build, String status, Date started_at, Date finished_at){
     Scm scm      = null;
     val vcsRoots = build.getBuildType().getVcsRootInstanceEntries();
 
-    if (! vcsRoots.isEmpty()) {
+    String head = null;
+    val revisions = build.getRevisions();
+    if (revisions.isEmpty() == false) {
+      head = revisions.get(0).getRevision();
+    }
+    else {
+      // if above fails, fall back to getting version from vcs root
+      if (vcsRoots.isEmpty() == false) {
+        val vcsRoot = vcsRoots.get(0).getVcsRoot();
+        head = vcsRoot.getCurrentRevision().getVersion();
+      }
+    }
+    debug(head);
+
+    val changes = new ArrayList<String>();
+    for (VcsModification rev : build.getChanges(SelectPrevBuildPolicy.SINCE_LAST_SUCCESSFULLY_FINISHED_BUILD, false)) {
+      changes.add(rev.getVersion());
+    }
+
+    if (vcsRoots.isEmpty() == false) {
       val vcsRoot = vcsRoots.get(0).getVcsRoot();
       scm = Scm.builder().url(vcsRoot.getProperty("url")).
                           branch(vcsRoot.getProperty("branch").replace("refs/heads/", "origin/")).
-                          commit(vcsRoot.getCurrentRevision().getVersion()).build();
+                          commit(head).
+                          changes(changes).build();
+    }
+
+    debug("status...");
+    debug(build.getStatusDescriptor().getStatus().toString());
+    debug(build.getStatusDescriptor().getStatus().getText());
+    debug(build.getStatusDescriptor().getText());
+    debug(build.getBuildStatus().toString());
+    debug(build.getBuildStatus().getText());
+    for (val problem : build.getFailureReasons()) {
+      debug(problem.toString());
+      debug(problem.getType());
     }
 
     final PayloadBuild payloadBuild = PayloadBuild.builder().
@@ -75,7 +228,9 @@ public class WebhooksListener extends BuildServerAdapter {
                                                              build.getBuildType().getExternalId(),
                                                              build.getBuildId())).
       build_id(build.getBuildNumber()).
-      status(build.getBuildType().getStatusDescriptor().getStatusDescriptor().getText().toLowerCase()).
+      status(status).
+      started_at(started_at).
+      finished_at(finished_at).
       scm(scm).
       artifacts(artifacts(build)).
       build();
@@ -93,7 +248,7 @@ public class WebhooksListener extends BuildServerAdapter {
    */
   private void postPayload(@NonNull String url, @NonNull String payload){
     try {
-      val request  = HttpRequest.post(url).body(payload).open();
+      val request  = HttpRequest.post(url).body(payload).contentType("application/json").open();
       // http://jodd.org/doc/http.html#sockethttpconnection
       ((SocketHttpConnection) request.httpConnection()).getSocket().setSoTimeout(POST_TIMEOUT);
       val response = request.send();
