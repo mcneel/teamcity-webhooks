@@ -68,6 +68,12 @@ public class WebhooksListener extends BuildServerAdapter {
       // for (VcsModification rev : build.getChanges(SelectPrevBuildPolicy.SINCE_LAST_SUCCESSFULLY_FINISHED_BUILD, false)) {
       //   log(rev.getVersion());
       // }
+      log(build.getParametersProvider().get("env.BuildDate"));
+      // for (Map.Entry<String, String> entry : build.getParametersProvider().getAll().entrySet()) {
+      //   String key = entry.getKey().toString();
+      //   String value = entry.getValue().toString();
+      //   log("key, " + key + " value " + value );
+      // }
       /////////////////////////////////////////////////
 
       for (val url : settings.getUrls(build.getProjectExternalId())){
@@ -222,6 +228,9 @@ public class WebhooksListener extends BuildServerAdapter {
       debug(problem.getType());
     }
 
+    val parameters = new HashMap<String, String>();
+    parameters.put("build_date", build.getParametersProvider().get("env.BuildDate"));
+
     final PayloadBuild payloadBuild = PayloadBuild.builder().
       // http://127.0.0.1:8080/viewLog.html?buildTypeId=Echo_Build&buildId=90
       full_url("%s/viewLog.html?buildTypeId=%s&buildId=%s".f(buildServer.getRootUrl(),
@@ -233,6 +242,7 @@ public class WebhooksListener extends BuildServerAdapter {
       finished_at(finished_at).
       scm(scm).
       artifacts(artifacts(build)).
+      parameters(parameters).
       build();
 
     return WebhookPayload.of(build.getFullName(),

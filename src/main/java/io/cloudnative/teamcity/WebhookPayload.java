@@ -29,6 +29,7 @@ public class WebhookPayload {
     Date finished_at;
     Scm    scm;
     Map<String,Map<String,String>> artifacts;
+    Map<String, String> parameters;
   }
 
   @Builder
