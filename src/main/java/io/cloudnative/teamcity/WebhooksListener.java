@@ -30,7 +30,7 @@ public class WebhooksListener extends BuildServerAdapter {
   @NonNull ServerPaths      serverPaths;
   @NonNull ArtifactsGuard   artifactsGuard;
 
-  String DateFormat = "EEE', 'dd' 'MMM' 'yyyy' 'HH:mm:ss' 'Z";
+  String DateFormat = "yyyy-MM-dd'T'HH:mm:ssZ";
   Gson gson = new GsonBuilder().setPrettyPrinting().setDateFormat(DateFormat).serializeNulls().create();
 
   public void register(){
