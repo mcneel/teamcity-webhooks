@@ -68,7 +68,6 @@ public class WebhooksListener extends BuildServerAdapter {
       // for (VcsModification rev : build.getChanges(SelectPrevBuildPolicy.SINCE_LAST_SUCCESSFULLY_FINISHED_BUILD, false)) {
       //   log(rev.getVersion());
       // }
-      log(build.getParametersProvider().get("env.BuildDate"));
       // for (Map.Entry<String, String> entry : build.getParametersProvider().getAll().entrySet()) {
       //   String key = entry.getKey().toString();
       //   String value = entry.getValue().toString();
@@ -89,7 +88,7 @@ public class WebhooksListener extends BuildServerAdapter {
 
 
   @Override
-  public void buildStarted(@NonNull SRunningBuild build) {
+  public void changesLoaded(@NonNull SRunningBuild build) {
     val time = System.currentTimeMillis();
     try {
       Date started_at = build.getStartDate();
@@ -185,22 +184,14 @@ public class WebhooksListener extends BuildServerAdapter {
 
 
   @SuppressWarnings({"FeatureEnvy" , "ConstantConditions"})
-  @SneakyThrows(VcsException.class)
+  //@SneakyThrows(VcsException.class)
   private WebhookPayload buildPayload(@NonNull SBuild build, String status, Date started_at, Date finished_at){
     Scm scm      = null;
-    val vcsRoots = build.getBuildType().getVcsRootInstanceEntries();
 
     String head = null;
     val revisions = build.getRevisions();
     if (revisions.isEmpty() == false) {
       head = revisions.get(0).getRevision();
-    }
-    else {
-      // if above fails, fall back to getting version from vcs root
-      if (vcsRoots.isEmpty() == false) {
-        val vcsRoot = vcsRoots.get(0).getVcsRoot();
-        head = vcsRoot.getCurrentRevision().getVersion();
-      }
     }
     debug(head);
 
@@ -209,6 +200,7 @@ public class WebhooksListener extends BuildServerAdapter {
       changes.add(rev.getVersion());
     }
 
+    val vcsRoots = build.getBuildType().getVcsRootInstanceEntries();
     if (vcsRoots.isEmpty() == false) {
       val vcsRoot = vcsRoots.get(0).getVcsRoot();
       scm = Scm.builder().url(vcsRoot.getProperty("url")).
