@@ -188,27 +188,40 @@ public class WebhooksListener extends BuildServerAdapter {
   private WebhookPayload buildPayload(@NonNull SBuild build, String status, Date started_at, Date finished_at){
     Scm scm      = null;
 
-    String head = null;
     val revisions = build.getRevisions();
     if (revisions.isEmpty() == false) {
-      head = revisions.get(0).getRevision();
-    }
-    debug(head);
+      BuildRevision rev = revisions.get(0); // TODO: do something if more than one build rev
 
-    val changes = new ArrayList<String>();
-    for (VcsModification rev : build.getChanges(SelectPrevBuildPolicy.SINCE_LAST_SUCCESSFULLY_FINISHED_BUILD, false)) {
-      changes.add(rev.getVersion());
-    }
+      VcsRoot root = revisions.get(0).getRoot(); // TODO: do something if more than one vcs root
 
-    val vcsRoots = build.getBuildType().getVcsRootInstanceEntries();
-    if (vcsRoots.isEmpty() == false) {
-      val vcsRoot = vcsRoots.get(0).getVcsRoot();
-      scm = Scm.builder().url(vcsRoot.getProperty("url")).
-                          branch(vcsRoot.getProperty("branch").replace("refs/heads/", "origin/")).
+      String url = root.getProperty("url");
+      String branch = rev.getRepositoryVersion().getVcsBranch();
+
+      //////////////////////////
+      debug(root.getProperty("branch"));
+      debug(build.getBranch().getName());
+      debug(build.getBranch().getDisplayName());
+      debug(build.getBranch().getName());
+      for (Map.Entry<String, String> entry : root.getProperties().entrySet()) {
+        debug(entry.getKey() + ": " + entry.getValue());
+      }
+      //////////////////////////
+
+      String head = rev.getRevision();
+      debug(head);
+
+      val changes = new ArrayList<String>();
+      for (VcsModification mod : build.getChanges(SelectPrevBuildPolicy.SINCE_LAST_SUCCESSFULLY_FINISHED_BUILD, false)) {
+        changes.add(mod.getVersion());
+      }
+
+      scm = Scm.builder().url(url).
+                          branch(branch).
                           commit(head).
                           changes(changes).build();
     }
 
+    //////////////////////////
     debug("status...");
     debug(build.getStatusDescriptor().getStatus().toString());
     debug(build.getStatusDescriptor().getStatus().getText());
@@ -219,9 +232,19 @@ public class WebhooksListener extends BuildServerAdapter {
       debug(problem.toString());
       debug(problem.getType());
     }
+    //////////////////////////
 
     val parameters = new HashMap<String, String>();
-    parameters.put("build_date", build.getParametersProvider().get("env.BuildDate"));
+    val date = build.getParametersProvider().get("env.BuildDate");
+    if (date != null) {
+      parameters.put("build_date", date);
+    }
+
+    //////////////////////////
+    for (Map.Entry<String, String> entry : build.getParametersProvider().getAll().entrySet()) {
+      debug(entry.getKey() + ": " + entry.getValue());
+    }
+    //////////////////////////
 
     final PayloadBuild payloadBuild = PayloadBuild.builder().
       // http://127.0.0.1:8080/viewLog.html?buildTypeId=Echo_Build&buildId=90
