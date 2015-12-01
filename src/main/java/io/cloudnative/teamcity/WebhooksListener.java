@@ -187,12 +187,14 @@ public class WebhooksListener extends BuildServerAdapter {
     val time = System.currentTimeMillis();
     try {
       BuildPromotion prom = build.getBuildPromotion();
-      VcsRootInstance root = prom.getVcsRootEntries().get(0).getVcsRoot(); // TODO
-
-      Scm scm = Scm.builder().url(root.getProperty("url")).
-                              branch(prom.getBranch().getName()).
-                              commit(null).
-                              changes(null).build();
+      Scm scm = null;
+      if (prom.getVcsRootEntries().isEmpty() == false) {
+        VcsRootInstance root = prom.getVcsRootEntries().get(0).getVcsRoot(); // TODO
+        scm = Scm.builder().url(root.getProperty("url")).
+                                branch(prom.getBranch().getName()).
+                                commit(null).
+                                changes(null).build();
+      }
 
       final PayloadBuild payloadBuild = PayloadBuild.builder().
         // http://127.0.0.1:8080/viewLog.html?buildTypeId=Echo_Build&buildId=90
