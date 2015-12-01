@@ -182,6 +182,51 @@ public class WebhooksListener extends BuildServerAdapter {
     }
   }
 
+  @Override
+  public void buildTypeAddedToQueue(@NonNull SQueuedBuild build) {
+    val time = System.currentTimeMillis();
+    try {
+      BuildPromotion prom = build.getBuildPromotion();
+      VcsRootInstance root = prom.getVcsRootEntries().get(0).getVcsRoot(); // TODO
+
+      Scm scm = Scm.builder().url(root.getProperty("url")).
+                              branch(prom.getBranch().getName()).
+                              commit(null).
+                              changes(null).build();
+
+      final PayloadBuild payloadBuild = PayloadBuild.builder().
+        // http://127.0.0.1:8080/viewLog.html?buildTypeId=Echo_Build&buildId=90
+        full_url("%s/queue.html".f(buildServer.getRootUrl())).
+        build_id(null).
+        status("queued").
+        started_at(null).
+        finished_at(null).
+        scm(scm).
+        artifacts(null).
+        parameters(null).
+        build();
+
+      WebhookPayload payloadFull = WebhookPayload.of(build.getBuildType().getFullName(),
+                               // http://127.0.0.1:8080/viewType.html?buildTypeId=Echo_Build
+                               "%s/viewType.html?buildTypeId=%s".f(buildServer.getRootUrl(),
+                                                                   build.getBuildType().getExternalId()), // same as Build.getExternalId()
+                               payloadBuild);
+
+      val payload = gson.toJson(payloadFull);
+      gson.fromJson(payload, Map.class); // Sanity check of JSON generated
+      log("Build '%s' queued, payload is '%s'".f(build.getBuildType().getFullName(), payload));
+
+      for (val url : settings.getUrls(build.getBuildType().getProjectExternalId())){ // same as Build.getProjectExternalId()
+        postPayload(url, payload);
+      }
+
+      log("QUEUED operation finished in %s ms".f(System.currentTimeMillis() - time));
+    }
+    catch (Throwable t) {
+      error("Failed to listen on buildTypeAddedToQueue() of '%s'".f(build.getBuildType().getFullName()), t);
+    }
+  }
+
 
   @SuppressWarnings({"FeatureEnvy" , "ConstantConditions"})
   //@SneakyThrows(VcsException.class)
