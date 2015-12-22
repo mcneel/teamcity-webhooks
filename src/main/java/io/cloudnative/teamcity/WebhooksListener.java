@@ -190,8 +190,9 @@ public class WebhooksListener extends BuildServerAdapter {
       Scm scm = null;
       if (prom.getVcsRootEntries().isEmpty() == false) {
         VcsRootInstance root = prom.getVcsRootEntries().get(0).getVcsRoot(); // TODO
+        String branch = prom.getBranch() != null ? prom.getBranch().getName() : null;
         scm = Scm.builder().url(root.getProperty("url")).
-                                branch(prom.getBranch().getName()).
+                                branch(branch).
                                 commit(null).
                                 changes(null).build();
       }
@@ -245,13 +246,13 @@ public class WebhooksListener extends BuildServerAdapter {
       String branch = rev.getRepositoryVersion().getVcsBranch();
 
       //////////////////////////
-      debug(root.getProperty("branch"));
-      debug(build.getBranch().getName());
-      debug(build.getBranch().getDisplayName());
-      debug(build.getBranch().getName());
-      for (Map.Entry<String, String> entry : root.getProperties().entrySet()) {
-        debug(entry.getKey() + ": " + entry.getValue());
-      }
+      // debug(root.getProperty("branch"));
+      // debug(build.getBranch().getName());
+      // debug(build.getBranch().getDisplayName());
+      // debug(build.getBranch().getName());
+      // for (Map.Entry<String, String> entry : root.getProperties().entrySet()) {
+      //   debug(entry.getKey() + ": " + entry.getValue());
+      // }
       //////////////////////////
 
       String head = rev.getRevision();
