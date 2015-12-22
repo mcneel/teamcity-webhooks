@@ -198,8 +198,7 @@ public class WebhooksListener extends BuildServerAdapter {
       }
 
       final PayloadBuild payloadBuild = PayloadBuild.builder().
-        // http://127.0.0.1:8080/viewLog.html?buildTypeId=Echo_Build&buildId=90
-        full_url("%s/queue.html".f(buildServer.getRootUrl())).
+        full_url("%s/viewQueued.html?itemId=%d".f(buildServer.getRootUrl(), prom.getId())).
         build_id(null).
         status("queued").
         started_at(null).
