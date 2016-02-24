@@ -10,6 +10,7 @@ import com.google.gson.*;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.artifacts.ArtifactsGuard;
 import jetbrains.buildServer.vcs.*;
+import jetbrains.buildServer.BuildProblemData;
 import jodd.http.HttpRequest;
 import jodd.http.net.SocketHttpConnection;
 import lombok.*;
@@ -50,6 +51,14 @@ public class WebhooksListener extends BuildServerAdapter {
       String status = build.getStatusDescriptor().getStatus().getText().toLowerCase();
       if (build.isInterrupted()) {
         status = "error";
+      }
+
+      // set "error" status if failure is during source checkout (a.k.a. gitcrap)
+      for (BuildProblemData problem : build.getFailureReasons()) {
+        if (problem.getIdentity().equals("gitcrap")) {
+          status = "error";
+          log("Setting payload status to \"error\" as failure is during source checkout.");
+        }
       }
 
       val payload = gson.toJson(buildPayload(build, status, started_at, finished_at));
