@@ -75,8 +75,12 @@ public class WebhooksListener extends BuildServerAdapter {
       // }
       /////////////////////////////////////////////////
 
-      for (val url : settings.getUrls(build.getProjectExternalId())){
-        postPayload(url, payload);
+      if (build.isPersonal()) {
+        log("Skipping post for personal build.");
+      } else {
+        for (val url : settings.getUrls(build.getProjectExternalId())){
+          postPayload(url, payload);
+        }
       }
 
       log("Operation finished in %s ms".f(System.currentTimeMillis() - time));
@@ -121,8 +125,12 @@ public class WebhooksListener extends BuildServerAdapter {
       // }
       /////////////////////////////////////////////////
 
-      for (val url : settings.getUrls(build.getProjectExternalId())){
-        postPayload(url, payload);
+      if (build.isPersonal()) {
+        log("Skipping post for personal build.");
+      } else {
+        for (val url : settings.getUrls(build.getProjectExternalId())){
+          postPayload(url, payload);
+        }
       }
 
       log("Operation finished in %s ms".f(System.currentTimeMillis() - time));
@@ -171,8 +179,12 @@ public class WebhooksListener extends BuildServerAdapter {
       // }
       /////////////////////////////////////////////////
 
-      for (val url : settings.getUrls(build.getProjectExternalId())){
-        postPayload(url, payload);
+      if (build.isPersonal()) {
+        log("Skipping post for personal build.");
+      } else {
+        for (val url : settings.getUrls(build.getProjectExternalId())){
+          postPayload(url, payload);
+        }
       }
 
       log("Operation finished in %s ms".f(System.currentTimeMillis() - time));
@@ -218,8 +230,12 @@ public class WebhooksListener extends BuildServerAdapter {
       gson.fromJson(payload, Map.class); // Sanity check of JSON generated
       log("Build '%s' queued, payload is '%s'".f(build.getBuildType().getFullName(), payload));
 
-      for (val url : settings.getUrls(build.getBuildType().getProjectExternalId())){ // same as Build.getProjectExternalId()
-        postPayload(url, payload);
+      if (build.isPersonal()) {
+        log("Skipping post for personal build.");
+      } else {
+        for (val url : settings.getUrls(build.getBuildType().getProjectExternalId())){ // same as Build.getProjectExternalId()
+          postPayload(url, payload);
+        }
       }
 
       log("QUEUED operation finished in %s ms".f(System.currentTimeMillis() - time));
