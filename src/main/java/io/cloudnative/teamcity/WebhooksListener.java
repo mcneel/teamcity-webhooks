@@ -283,8 +283,10 @@ public class WebhooksListener extends BuildServerAdapter {
       debug(head);
 
       val changes = new ArrayList<String>();
-      for (VcsModification mod : build.getChanges(SelectPrevBuildPolicy.SINCE_LAST_SUCCESSFULLY_FINISHED_BUILD, false)) {
-        changes.add(mod.getVersion());
+      if (branch.startsWith("refs/pull/") == false) {
+        for (VcsModification mod : build.getChanges(SelectPrevBuildPolicy.SINCE_LAST_SUCCESSFULLY_FINISHED_BUILD, false)) {
+          changes.add(mod.getVersion());
+        }
       }
 
       scm = Scm.builder().url(url).
