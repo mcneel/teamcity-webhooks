@@ -96,6 +96,8 @@ public class WebhooksListener extends BuildServerAdapter {
     }
     catch (Throwable t) {
       error("Failed to listen on buildFinished() of '%s' #%s".f(build.getFullName(), build.getBuildNumber()), t);
+      // Try to print a better stacktrace
+      error(getStackTrace(t));
     }
   }
 
@@ -146,6 +148,8 @@ public class WebhooksListener extends BuildServerAdapter {
     }
     catch (Throwable t) {
       error("Failed to listen on buildStarted() of '%s' #%s".f(build.getFullName(), build.getBuildNumber()), t);
+      // Try to print a better stacktrace
+      error(getStackTrace(t));
     }
   }
 

@@ -8,6 +8,8 @@ import lombok.experimental.ExtensionMethod;
 import lombok.val;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
@@ -106,5 +108,16 @@ final class WebhooksUtils {
 
   static void debug(@NonNull String message){
       LOG.debug("WebHooks plugin - " + message);
+  }
+
+
+  static String getStackTrace(Throwable t)
+  {
+    StringWriter sw = new StringWriter();
+    PrintWriter pw = new PrintWriter(sw, true);
+    t.printStackTrace(pw);
+    pw.flush();
+    sw.flush();
+    return sw.toString();
   }
 }
