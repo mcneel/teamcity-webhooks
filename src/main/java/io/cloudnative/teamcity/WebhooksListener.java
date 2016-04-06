@@ -287,7 +287,7 @@ public class WebhooksListener extends BuildServerAdapter {
       debug(head);
 
       val changes = new ArrayList<String>();
-      if (branch.startsWith("refs/pull/") == false) {
+      if (branch != null && branch.startsWith("refs/pull/") == false) {
         for (VcsModification mod : build.getChanges(SelectPrevBuildPolicy.SINCE_LAST_SUCCESSFULLY_FINISHED_BUILD, false)) {
           changes.add(mod.getVersion());
         }
