@@ -50,7 +50,11 @@ public class WebhooksListener extends BuildServerAdapter {
       }
       String status = build.getStatusDescriptor().getStatus().getText().toLowerCase();
       if (build.isInterrupted()) {
-        status = "error";
+        if (build.getCanceledInfo() != null) {
+          status = "cancelled";
+        } else {
+          status = "error";
+        }
       }
 
       // set "error" status if failure is during source checkout (a.k.a. gitcrap)
@@ -160,6 +164,9 @@ public class WebhooksListener extends BuildServerAdapter {
         finished_at = new Date();
       }
       String status = "error";
+      if (build.getCanceledInfo() != null) {
+        status = "cancelled";
+      }
 
       val payload = gson.toJson(buildPayload(build, status, started_at, finished_at));
       gson.fromJson(payload, Map.class); // Sanity check of JSON generated
