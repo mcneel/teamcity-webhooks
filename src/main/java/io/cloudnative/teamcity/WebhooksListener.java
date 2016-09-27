@@ -359,7 +359,9 @@ public class WebhooksListener extends BuildServerAdapter {
       ((SocketHttpConnection) request.httpConnection()).getSocket().setSoTimeout(POST_TIMEOUT);
       val response = request.send();
 
-      if (response.statusCode() == 200) {
+      // allow all successful status codes
+      int status_code = response.statusCode();
+      if ( status_code >= 200 && status_code < 300) {
         log("Payload POST-ed to '%s'".f(url));
       }
       else {
