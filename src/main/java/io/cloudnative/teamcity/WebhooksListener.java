@@ -62,7 +62,12 @@ public class WebhooksListener extends BuildServerAdapter {
         if (problem.getIdentity().equals("gitcrap")) {
           status = "error";
           log("Setting payload status to \"error\" as failure is during source checkout.");
+          break;
         }
+      }
+
+      if (build.isInternalError()) {
+        status = "error";
       }
 
       val payload = gson.toJson(buildPayload(build, status, started_at, finished_at));
@@ -289,9 +294,20 @@ public class WebhooksListener extends BuildServerAdapter {
       String head = rev.getRevision();
       debug(head);
 
-      // set error status if commit == "N/A"
-      if (head == "N/A") {
-        status = "error";
+      // fallback method for populating scm.branch
+      // useful if "Unable to collect changes" occurs
+      if (branch == null) {
+        branch = build.getBuildPromotion().getBranch().getName();
+
+        // val vcsRoots = build.getBuildType().getVcsRootInstanceEntries();
+        //
+        // if (! vcsRoots.isEmpty()) {
+        //   log(vcsRoots.get(0).getCheckoutRulesSpecification());
+        //   log(vcsRoots.get(0).getCheckoutRules().getAsString());
+        //   for (String s : vcsRoots.get(0).getCheckoutRules().getBody()) {
+        //     log(s);
+        //   }
+        // }
       }
 
       val changes = new ArrayList<String>();
