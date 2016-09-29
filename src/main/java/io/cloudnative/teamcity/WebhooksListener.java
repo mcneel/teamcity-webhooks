@@ -289,6 +289,11 @@ public class WebhooksListener extends BuildServerAdapter {
       String head = rev.getRevision();
       debug(head);
 
+      // set error status if commit == "N/A"
+      if (head == "N/A") {
+        status = "error";
+      }
+
       val changes = new ArrayList<String>();
       if (branch != null && branch.startsWith("refs/pull/") == false) {
         for (VcsModification mod : build.getChanges(SelectPrevBuildPolicy.SINCE_LAST_SUCCESSFULLY_FINISHED_BUILD, false)) {
