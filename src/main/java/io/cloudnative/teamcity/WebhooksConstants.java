@@ -6,7 +6,7 @@ import jetbrains.buildServer.log.Loggers;
 
 @SuppressWarnings("ConstantDeclaredInInterface")
 interface WebhooksConstants {
-  String PLUGIN_TITLE       = "WebHooks";
+  String PLUGIN_TITLE       = "Webhooks";
   String PLUGIN_NAME        = PLUGIN_TITLE.toLowerCase();
   String CONTROLLER_PATH    = PLUGIN_NAME + "/index.html";
   String SETTINGS_FILE      = PLUGIN_NAME + ".json";
