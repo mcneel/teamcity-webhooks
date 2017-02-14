@@ -276,7 +276,7 @@ public class WebhooksListener extends BuildServerAdapter {
     if (revisions.isEmpty() == false) {
       BuildRevision rev = revisions.get(0); // TODO: do something if more than one build rev
 
-      VcsRoot root = revisions.get(0).getRoot(); // TODO: do something if more than one vcs root
+      VcsRoot root = rev.getRoot();
 
       String url = root.getProperty("url");
       String branch = rev.getRepositoryVersion().getVcsBranch();
@@ -297,7 +297,15 @@ public class WebhooksListener extends BuildServerAdapter {
       // fallback method for populating scm.branch
       // useful if "Unable to collect changes" occurs
       if (branch == null) {
-        branch = build.getBuildPromotion().getBranch().getName();
+        val promotionBranch = build.getBuildPromotion().getBranch();
+        if (promotionBranch != null)
+        {
+          branch = promotionBranch.getName();
+        }
+        else if (root.getVcsName() == "svn")
+        {
+          log("Couldn't find a branch name, probably because this build uses svn");
+        }
 
         // val vcsRoots = build.getBuildType().getVcsRootInstanceEntries();
         //
@@ -324,16 +332,16 @@ public class WebhooksListener extends BuildServerAdapter {
     }
 
     //////////////////////////
-    debug("status...");
-    debug(build.getStatusDescriptor().getStatus().toString());
-    debug(build.getStatusDescriptor().getStatus().getText());
-    debug(build.getStatusDescriptor().getText());
-    debug(build.getBuildStatus().toString());
-    debug(build.getBuildStatus().getText());
-    for (val problem : build.getFailureReasons()) {
-      debug(problem.toString());
-      debug(problem.getType());
-    }
+    // debug("status...");
+    // debug(build.getStatusDescriptor().getStatus().toString());
+    // debug(build.getStatusDescriptor().getStatus().getText());
+    // debug(build.getStatusDescriptor().getText());
+    // debug(build.getBuildStatus().toString());
+    // debug(build.getBuildStatus().getText());
+    // for (val problem : build.getFailureReasons()) {
+    //   debug(problem.toString());
+    //   debug(problem.getType());
+    // }
     //////////////////////////
 
     val parameters = new HashMap<String, String>();
@@ -343,9 +351,9 @@ public class WebhooksListener extends BuildServerAdapter {
     }
 
     //////////////////////////
-    for (Map.Entry<String, String> entry : build.getParametersProvider().getAll().entrySet()) {
-      debug(entry.getKey() + ": " + entry.getValue());
-    }
+    // for (Map.Entry<String, String> entry : build.getParametersProvider().getAll().entrySet()) {
+    //   debug(entry.getKey() + ": " + entry.getValue());
+    // }
     //////////////////////////
 
     final PayloadBuild payloadBuild = PayloadBuild.builder().
