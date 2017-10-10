@@ -224,6 +224,11 @@ public class WebhooksListener extends BuildServerAdapter {
       if (prom.getVcsRootEntries().isEmpty() == false) {
         VcsRootInstance root = prom.getVcsRootEntries().get(0).getVcsRoot(); // TODO
         String branch = prom.getBranch() != null ? prom.getBranch().getName() : null;
+        // if the build promotion doesn't have the actual branch name, try to
+        // get the vcs root's default branch
+        if (branch == "<default>" || branch == null) {
+          branch = root.getProperty("branch"); // returns null for svn
+        }
         scm = Scm.builder().url(root.getProperty("url")).
                                 branch(branch).
                                 commit(null).
