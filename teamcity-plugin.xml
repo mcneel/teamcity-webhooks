@@ -5,11 +5,11 @@
     <display-name>webhooks</display-name>
     <version>@Version@</version>
     <description>Sends HTTP notifications to webhooks when project is built</description>
-    <download-url>https://github.com/cloudnative/teamcity-webhooks</download-url>
+    <download-url>https://github.com/mcneel/teamcity-webhooks</download-url>
     <email>evgenyg@gmail.com</email>
     <vendor>
-      <name>CloudNative</name>
-      <url>https://github.com/cloudnative/teamcity-webhooks/</url>
+      <name>McNeel</name>
+      <url>https://github.com/mcneel/teamcity-webhooks/</url>
     </vendor>
   </info>
   <deployment use-separate-classloader="true" />
