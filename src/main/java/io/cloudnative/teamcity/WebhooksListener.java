@@ -323,17 +323,17 @@ public class WebhooksListener extends BuildServerAdapter {
         // }
       }
 
-      val changes = new ArrayList<String>();
-      if (branch != null && branch.startsWith("refs/pull/") == false) {
-        for (VcsModification mod : build.getChanges(SelectPrevBuildPolicy.SINCE_LAST_SUCCESSFULLY_FINISHED_BUILD, false)) {
-          changes.add(mod.getVersion());
-        }
-      }
+      // val changes = new ArrayList<String>();
+      // if (branch != null && branch.startsWith("refs/pull/") == false) {
+      //   for (VcsModification mod : build.getChanges(SelectPrevBuildPolicy.SINCE_LAST_SUCCESSFULLY_FINISHED_BUILD, false)) {
+      //     changes.add(mod.getVersion());
+      //   }
+      // }
 
       scm = Scm.builder().url(url).
                           branch(branch).
                           commit(head).
-                          changes(changes).build();
+                          changes(null).build();
     }
 
     //////////////////////////
